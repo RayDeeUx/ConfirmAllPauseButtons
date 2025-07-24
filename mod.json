@@ -12,6 +12,11 @@
 	"developer": "RayDeeUx",
 	"description": "Since, y'know, y'all have zero creativity nowadays.",
 	"settings": {
+		"enabled": {
+			"name": "Enabled",
+			"type": "bool",
+			"default": true
+		},
 		"applyEverywhere": {
 			"name": "Apply Everywhere",
 			"description": "Apple the confirmation menu everywhere.",

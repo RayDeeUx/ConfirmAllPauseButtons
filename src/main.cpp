@@ -17,6 +17,7 @@ using namespace geode::prelude;
 
 bool hasNodeIDs = false;
 
+bool enabled = false;
 bool applyEverywhere = false;
 std::string yesString = YES;
 std::string noString = NO;
@@ -105,12 +106,16 @@ class $modify(MyCCMenuItemToggler, CCMenuItemToggler) {
 
 $on_mod(Loaded) {
 	hasNodeIDs = Loader::get()->isModLoaded(NODE_IDS);
+	enabled = Mod::get()->getSettingValue<bool>("enabled");
 	applyEverywhere = Mod::get()->getSettingValue<bool>("applyEverywhere");
 	titleString = Mod::get()->getSettingValue<std::string>("titleString");
 	bodyString = Mod::get()->getSettingValue<std::string>("bodyString");
 	yesString = Mod::get()->getSettingValue<std::string>("yesString");
 	noString = Mod::get()->getSettingValue<std::string>("noString");
 	width = Mod::get()->getSettingValue<double>("width");
+	listenForSettingChanges("enabled", [](const bool enabledNew) {
+		enabled = enabledNew;
+	});
 	listenForSettingChanges("applyEverywhere", [](const bool applyEverywhereNew) {
 		applyEverywhere = applyEverywhereNew;
 	});
