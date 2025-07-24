@@ -30,6 +30,7 @@ class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 	void activate() {
 		if (!this->m_bEnabled) return;
 		if (isButtonFromOwnMod(this)) return MyCCMenuItemSpriteExtra::runAsUsual();
+		// this is definitely overkill but idc this aint going onto the index anyway
 		epoch = std::chrono::system_clock::now().time_since_epoch().count();
 		FLAlertLayer* popup = geode::createQuickPopup(TITLE, BODY, "No", "Yes", 420.f, [this](auto, const bool isButtonTwo) {
 			if (isButtonTwo) MyCCMenuItemSpriteExtra::runAsUsual();
