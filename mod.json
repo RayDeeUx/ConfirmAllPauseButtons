@@ -14,7 +14,7 @@
 	"settings": {
 		"applyEverywhere": {
 			"name": "Apply Everywhere",
-			"description": "Apple the confirmation menu everywhere",
+			"description": "Apple the confirmation menu everywhere.",
 			"type": "bool",
 			"default": false
 		}

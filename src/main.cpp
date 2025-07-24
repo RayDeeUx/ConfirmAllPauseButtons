@@ -1,8 +1,8 @@
 #include <Geode/modify/CCMenuItemSpriteExtra.hpp>
+#include <Geode/modify/CCMenuItemToggler.hpp>
 
 using namespace geode::prelude;
 
-long long epoch = std::chrono::system_clock::now().time_since_epoch().count();
 bool applyEverywhere = false;
 bool hasNodeIDs = false;
 
@@ -13,8 +13,9 @@ bool hasNodeIDs = false;
 #define TEXTAREA_NDID "content-text-area"
 #define TITLE_NDCHILD mainLayer->getChildByID(TITLE_NODE_ID)
 #define TEXTAREA_CHLD mainLayer->getChildByID(TEXTAREA_NDID)
+#define CONFIRMATION_POPUP_NODE_ID "confirmation-popup"_spr
 
-bool isButtonFromOwnMod(CCMenuItemSpriteExtra* button) {
+bool isButtonFromOwnMod(CCMenuItem* button) {
 	// button -> parent CCMenu* -> parent CCLayer* -> parent QuickPopup* / FLAlertLayer*
 	if (!button) return false;
 	CCNode* parent =  button->getParent();
@@ -24,12 +25,12 @@ bool isButtonFromOwnMod(CCMenuItemSpriteExtra* button) {
 	if (CCNode* greatgrandparent = grandparent->getParent()) {
 		const std::string& nodeID = greatgrandparent->getID();
 		if (nodeID.empty()) return false;
-		return utils::string::startsWith(nodeID, "confirmation-popup-"_spr);
+		return nodeID == CONFIRMATION_POPUP_NODE_ID;
 	}
 	return false;
 }
 
-bool isFromPauseMenu(CCMenuItemSpriteExtra* button) {
+bool isFromPauseMenu(CCMenuItem* button) {
 	// button -> parent CCMenu* -> parent PauseLayer*
 	if (hasNodeIDs) {
 		if (!CCScene::get()->getChildByID("PauseLayer")) return false;
@@ -47,20 +48,44 @@ bool isFromPauseMenu(CCMenuItemSpriteExtra* button) {
 	return false;
 }
 
+void createPopupWithCallback(CCMenuItem* item, const std::function<void()>& callback) {
+	if (!item->m_bEnabled) return;
+	if (!applyEverywhere && !isFromPauseMenu(item)) return callback();
+	if (isButtonFromOwnMod(item)) return callback();
+	FLAlertLayer* popup = geode::createQuickPopup(TITLE, BODY, "No", "Yes", 420.f, [callback](auto, const bool isButtonTwo) {
+		if (isButtonTwo) callback();
+	}, true, true);
+	popup->setID(CONFIRMATION_POPUP_NODE_ID);
+}
+
 class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 	void activate() {
-		if (!this->m_bEnabled) return;
-		if (!applyEverywhere && !isFromPauseMenu(this)) return MyCCMenuItemSpriteExtra::runAsUsual();
-		if (isButtonFromOwnMod(this)) return MyCCMenuItemSpriteExtra::runAsUsual();
 		// this is definitely overkill but idc this aint going onto the index anyway
-		epoch = std::chrono::system_clock::now().time_since_epoch().count();
-		FLAlertLayer* popup = geode::createQuickPopup(TITLE, BODY, "No", "Yes", 420.f, [this](auto, const bool isButtonTwo) {
-			if (isButtonTwo) MyCCMenuItemSpriteExtra::runAsUsual();
-		}, false, false);
-		popup->setID(fmt::format("confirmation-popup-{}"_spr, epoch));
-		popup->show();
+		createPopupWithCallback(this, [this] {
+			MyCCMenuItemSpriteExtra::runAsUsual();
+		});
 	}
 	void runAsUsual() {
+		// based on Ghidra decomp :P
+		this->stopAllActions();
+		if (this->m_animationType == MenuAnimationType::Scale) this->setScale(this->m_baseScale);
+		if (!std::string(this->m_activateSound).empty() && this->m_volume > 0.f) {
+			FMODAudioEngine::sharedEngine()->playEffect(m_activateSound, 1.f, 0.f, this->m_volume);
+		}
+		if (m_pListener && m_pfnSelector) (m_pListener->*m_pfnSelector)(this);
+		if (kScriptTypeNone != m_eScriptType) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(this);
+	}
+};
+
+class $modify(MyCCMenuItemToggler, CCMenuItemToggler) {
+	void activate() {
+		// this is definitely overkill but idc this aint going onto the index anyway
+		createPopupWithCallback(this, [this] {
+			MyCCMenuItemToggler::runAsUsual();
+		});
+	}
+	void runAsUsual() {
+		// based on Ghidra decomp :P
 		if (m_pListener && m_pfnSelector) (m_pListener->*m_pfnSelector)(this);
 		if (kScriptTypeNone != m_eScriptType) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(this);
 	}
