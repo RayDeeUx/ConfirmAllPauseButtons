@@ -76,6 +76,7 @@ void cocosMenuItemRunAsUsual(CCMenuItem* item) {
 
 class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 	void activate() {
+		if (!enabled) return CCMenuItemSpriteExtra::activate();
 		// this is definitely overkill but idc this aint going onto the index anyway
 		createPopupWithCallback(this, [this] {
 			MyCCMenuItemSpriteExtra::runAsUsual();
@@ -94,6 +95,7 @@ class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 
 class $modify(MyCCMenuItemToggler, CCMenuItemToggler) {
 	void activate() {
+		if (!enabled) return CCMenuItemToggler::activate();
 		// this is definitely overkill but idc this aint going onto the index anyway
 		createPopupWithCallback(this, [this] {
 			MyCCMenuItemToggler::runAsUsual();
