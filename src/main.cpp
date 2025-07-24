@@ -3,17 +3,26 @@
 
 using namespace geode::prelude;
 
-bool applyEverywhere = false;
-bool hasNodeIDs = false;
-
 #define NODE_IDS "geode.node-ids"
 #define TITLE "Woah! Hold on there!"
 #define BODY "Are you sure you want to press this?"
+#define YES "Yes"
+#define NO "No"
+
 #define TITLE_NODE_ID "title"
 #define TEXTAREA_NDID "content-text-area"
 #define TITLE_NDCHILD mainLayer->getChildByID(TITLE_NODE_ID)
 #define TEXTAREA_CHLD mainLayer->getChildByID(TEXTAREA_NDID)
 #define CONFIRMATION_POPUP_NODE_ID "confirmation-popup"_spr
+
+bool hasNodeIDs = false;
+
+bool applyEverywhere = false;
+std::string yesString = YES;
+std::string noString = NO;
+std::string titleString = TITLE;
+std::string bodyString = BODY;
+float width = 420.f;
 
 bool isButtonFromOwnMod(CCMenuItem* button) {
 	// button -> parent CCMenu* -> parent CCLayer* -> parent QuickPopup* / FLAlertLayer*
@@ -52,7 +61,7 @@ void createPopupWithCallback(CCMenuItem* item, const std::function<void()>& call
 	if (!item->m_bEnabled) return;
 	if (!applyEverywhere && !isFromPauseMenu(item)) return callback();
 	if (isButtonFromOwnMod(item)) return callback();
-	FLAlertLayer* popup = geode::createQuickPopup(TITLE, BODY, "No", "Yes", 420.f, [callback](auto, const bool isButtonTwo) {
+	FLAlertLayer* popup = geode::createQuickPopup(titleString.c_str(), bodyString, noString.c_str(), yesString.c_str(), width, [callback](auto, const bool isButtonTwo) {
 		if (isButtonTwo) callback();
 	}, true, true);
 	popup->setID(CONFIRMATION_POPUP_NODE_ID);
@@ -97,7 +106,31 @@ class $modify(MyCCMenuItemToggler, CCMenuItemToggler) {
 $on_mod(Loaded) {
 	hasNodeIDs = Loader::get()->isModLoaded(NODE_IDS);
 	applyEverywhere = Mod::get()->getSettingValue<bool>("applyEverywhere");
-	listenForSettingChanges("applyEverywhere", [](const bool newApplyEverywhere) {
-		applyEverywhere = newApplyEverywhere;
+	titleString = Mod::get()->getSettingValue<std::string>("titleString");
+	bodyString = Mod::get()->getSettingValue<std::string>("bodyString");
+	yesString = Mod::get()->getSettingValue<std::string>("yesString");
+	noString = Mod::get()->getSettingValue<std::string>("noString");
+	width = Mod::get()->getSettingValue<double>("width");
+	listenForSettingChanges("applyEverywhere", [](const bool applyEverywhereNew) {
+		applyEverywhere = applyEverywhereNew;
+	});
+	listenForSettingChanges("titleString", [](const std::string& titleStringNew) {
+		if (titleStringNew.empty()) titleString = TITLE;
+		else titleString = titleStringNew;
+	});
+	listenForSettingChanges("bodyString", [](const std::string& bodyStringNew) {
+		if (bodyStringNew.empty()) bodyString = BODY;
+		else bodyString = bodyStringNew;
+	});
+	listenForSettingChanges("yesString", [](const std::string& yesStringNew) {
+		if (yesStringNew.empty()) yesString = YES;
+		else yesString = yesStringNew;
+	});
+	listenForSettingChanges("noString", [](const std::string& noStringNew) {
+		if (noStringNew.empty()) noString = NO;
+		else noString = noStringNew;
+	});
+	listenForSettingChanges("width", [](const float widthNew) {
+		width = std::clamp(widthNew, 100.f, 420.f);
 	});
 }

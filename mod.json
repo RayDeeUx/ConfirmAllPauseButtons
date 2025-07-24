@@ -17,6 +17,37 @@
 			"description": "Apple the confirmation menu everywhere.",
 			"type": "bool",
 			"default": false
+		},
+		"titleString": {
+			"name": "Title String",
+			"type": "string",
+			"default": "Woah! Hold on there!",
+			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:-_+=`~0123456789!@#$%^&*()[]{}|;:'\"<>,.?/\\"
+		},
+		"bodyString": {
+			"name": "Body String",
+			"type": "string",
+			"default": "Are you sure you want to press this?",
+			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:-_+=`~0123456789!@#$%^&*()[]{}|;:'\"<>,.?/\\"
+		},
+		"noString": {
+			"name": "Button 1 String",
+			"type": "string",
+			"default": "No",
+			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:-_+=`~0123456789!@#$%^&*()[]{}|;:'\"<>,.?/\\"
+		},
+		"yesString": {
+			"name": "Button 2 String",
+			"type": "string",
+			"default": "Yes",
+			"filter": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:-_+`~`0123456789!@#$%^&*()[]{}|;:'\"<>,.?/\\"
+		},
+		"width": {
+			"name": "Popup Width",
+			"type": "float",
+			"default": 420.0,
+			"min": 100.0,
+			"max": 420.0
 		}
 	},
 	"issues": {
