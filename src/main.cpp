@@ -58,6 +58,12 @@ void createPopupWithCallback(CCMenuItem* item, const std::function<void()>& call
 	popup->setID(CONFIRMATION_POPUP_NODE_ID);
 }
 
+void cocosMenuItemRunAsUsual(CCMenuItem* item) {
+	// based on Ghidra decomp :P
+	if (item->m_pListener && item->m_pfnSelector) (item->m_pListener->*item->m_pfnSelector)(item);
+	if (item->m_eScriptType != ccScriptType::kScriptTypeNone) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(item);
+}
+
 class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 	void activate() {
 		// this is definitely overkill but idc this aint going onto the index anyway
@@ -72,8 +78,7 @@ class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 		if (!std::string(this->m_activateSound).empty() && this->m_volume > 0.f) {
 			FMODAudioEngine::sharedEngine()->playEffect(m_activateSound, 1.f, 0.f, this->m_volume);
 		}
-		if (m_pListener && m_pfnSelector) (m_pListener->*m_pfnSelector)(this);
-		if (kScriptTypeNone != m_eScriptType) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(this);
+		cocosMenuItemRunAsUsual(this);
 	}
 };
 
@@ -85,9 +90,7 @@ class $modify(MyCCMenuItemToggler, CCMenuItemToggler) {
 		});
 	}
 	void runAsUsual() {
-		// based on Ghidra decomp :P
-		if (m_pListener && m_pfnSelector) (m_pListener->*m_pfnSelector)(this);
-		if (kScriptTypeNone != m_eScriptType) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(this);
+		cocosMenuItemRunAsUsual(this);
 	}
 };
 
