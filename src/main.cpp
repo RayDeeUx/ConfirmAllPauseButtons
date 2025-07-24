@@ -3,7 +3,10 @@
 using namespace geode::prelude;
 
 long long epoch = std::chrono::system_clock::now().time_since_epoch().count();
+bool applyEverywhere = false;
+bool hasNodeIDs = false;
 
+#define NODE_IDS "geode.node-ids"
 #define TITLE "Woah! Hold on there!"
 #define BODY "Are you sure you want to press this?"
 #define TITLE_NODE_ID "title"
@@ -11,24 +14,43 @@ long long epoch = std::chrono::system_clock::now().time_since_epoch().count();
 #define TITLE_NDCHILD mainLayer->getChildByID(TITLE_NODE_ID)
 #define TEXTAREA_CHLD mainLayer->getChildByID(TEXTAREA_NDID)
 
-bool isButtonFromOwnMod(CCNode *node) {
-	// shut the fuck up CLion and clang-tidy, this is NOT recursive [anymore!]
-	if (!node || !node->getParent()) return false;
-	if (typeinfo_cast<CCScene*>(node->getParent())) return false;
-	if (!utils::string::startsWith(node->getParent()->getID(), "confirmation-popup-"_spr)) return isButtonFromOwnMod(node->getParent());
-	CCLayer* mainLayer = static_cast<FLAlertLayer*>(node->getParent())->m_mainLayer;
-	const TextArea* textArea = TEXTAREA_CHLD ? static_cast<TextArea*>(TEXTAREA_CHLD) : mainLayer->getChildByType<TextArea>(0);
-	if (!textArea || !textArea->m_label || !textArea->m_label->m_lines || textArea->m_label->m_lines->count() < 1 || !textArea->m_label->m_lines->objectAtIndex(0)) return false;
-	CCLabelBMFont* titleLabel = TITLE_NDCHILD ? static_cast<CCLabelBMFont*>(TITLE_NDCHILD) : mainLayer->getChildByType<CCLabelBMFont>(0);
-	const auto firstLine = static_cast<CCLabelBMFont*>(textArea->m_label->m_lines->objectAtIndex(0));
-	const std::string& titleString = titleLabel->getString();
-	if (const std::string& firstString = firstLine->getString(); titleString == TITLE && firstString == BODY) return true;
+bool isButtonFromOwnMod(CCMenuItemSpriteExtra* button) {
+	// button -> parent CCMenu* -> parent CCLayer* -> parent QuickPopup* / FLAlertLayer*
+	if (!button) return false;
+	CCNode* parent =  button->getParent();
+	if (!parent) return false;
+	CCNode* grandparent = parent->getParent();
+	if (!grandparent) return false;
+	if (CCNode* greatgrandparent = grandparent->getParent()) {
+		const std::string& nodeID = greatgrandparent->getID();
+		if (nodeID.empty()) return false;
+		return utils::string::startsWith(nodeID, "confirmation-popup-"_spr);
+	}
+	return false;
+}
+
+bool isFromPauseMenu(CCMenuItemSpriteExtra* button) {
+	// button -> parent CCMenu* -> parent PauseLayer*
+	if (hasNodeIDs) {
+		if (!CCScene::get()->getChildByID("PauseLayer")) return false;
+	} else {
+		if (!CCScene::get()->getChildByType<PauseLayer*>(0)) return false;
+	}
+	if (!button) return false;
+	CCNode* parent = button->getParent();
+	if (!parent) return false;
+	if (CCNode* grandparent = parent->getParent()) {
+		if (grandparent->getID() == "PauseLayer") return true;
+		if (hasNodeIDs) return false;
+		return typeinfo_cast<PauseLayer*>(grandparent);
+	}
 	return false;
 }
 
 class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 	void activate() {
 		if (!this->m_bEnabled) return;
+		if (!applyEverywhere && !isFromPauseMenu(this)) return MyCCMenuItemSpriteExtra::runAsUsual();
 		if (isButtonFromOwnMod(this)) return MyCCMenuItemSpriteExtra::runAsUsual();
 		// this is definitely overkill but idc this aint going onto the index anyway
 		epoch = std::chrono::system_clock::now().time_since_epoch().count();
@@ -43,3 +65,11 @@ class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 		if (kScriptTypeNone != m_eScriptType) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(this);
 	}
 };
+
+$on_mod(Loaded) {
+	hasNodeIDs = Loader::get()->isModLoaded(NODE_IDS);
+	applyEverywhere = Mod::get()->getSettingValue<bool>("applyEverywhere");
+	listenForSettingChanges("applyEverywhere", [](const bool newApplyEverywhere) {
+		applyEverywhere = newApplyEverywhere;
+	});
+}

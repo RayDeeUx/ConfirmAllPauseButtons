@@ -11,6 +11,14 @@
 	"version": "v1.0.0",
 	"developer": "RayDeeUx",
 	"description": "Since, y'know, y'all have zero creativity nowadays.",
+	"settings": {
+		"applyEverywhere": {
+			"name": "Apply Everywhere",
+			"description": "Apple the confirmation menu everywhere",
+			"type": "bool",
+			"default": false
+		}
+	},
 	"issues": {
 		"url": "https://discord.com/channels/911701438269386882/1205523212444639292",
 		"info": "Ping me <cl>(@erymanthus)</c> in the Geode SDK Discord server's <cl>#help</c> channel if you need help. <cr>DMs are NOT accepted.</c>"
