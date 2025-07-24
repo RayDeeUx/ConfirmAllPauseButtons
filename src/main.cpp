@@ -59,7 +59,7 @@ void createPopupWithCallback(CCMenuItem* item, const std::function<void()>& call
 }
 
 void cocosMenuItemRunAsUsual(CCMenuItem* item) {
-	// based on Ghidra decomp :P
+	// based on IDA and Ghidra decomps :P
 	if (item->m_pListener && item->m_pfnSelector) (item->m_pListener->*item->m_pfnSelector)(item);
 	if (item->m_eScriptType != ccScriptType::kScriptTypeNone) CCScriptEngineManager::sharedManager()->getScriptEngine()->executeMenuItemEvent(item);
 }
@@ -72,7 +72,7 @@ class $modify(MyCCMenuItemSpriteExtra, CCMenuItemSpriteExtra) {
 		});
 	}
 	void runAsUsual() {
-		// based on Ghidra decomp :P
+		// based on IDA and Ghidra decomps :P
 		this->stopAllActions();
 		if (this->m_animationType == MenuAnimationType::Scale) this->setScale(this->m_baseScale);
 		if (!std::string(this->m_activateSound).empty() && this->m_volume > 0.f) {
